@@ -45,8 +45,8 @@ async def help(_, message):
     await message.reply_text(
         """**Below are My Commands...**
 /help To Show This Message.
-/phub To Search and Download in Pornhub
-/repo To Get the Repo"""
+/phub To Search and Download in Pornhub.
+/repo To Get the Repo."""
     )
     
 # Repo  -----------------------------------------------------------------------
