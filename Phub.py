@@ -73,11 +73,14 @@ async def repo(_, message):
 # Let's Go----------------------------------------------------------------------
 @app.on_message(filters.private & ~filters.edited)
 async def sarch(_,message):
-    if message.command[0] != ("help" or "start" or "repo"):
-        await message.reply_text(
-            "**Usage:**\nJust type Something to search in PHub Directly"
-        )
-        return
+    try:
+        if message.command[0] != ("help" or "start" or "repo"):
+            await message.reply_text(
+                "**Usage:**\nJust type Something to search in PHub Directly"
+            )
+            return
+    except:
+        pass
     m = await message.reply_text("Getting Results.....")
     search = message.text
     try:
