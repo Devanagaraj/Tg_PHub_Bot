@@ -1,4 +1,5 @@
 # Disclaimer:
+#   This Repo is just an working case of ARQ API with Pyrogram.
 #   Telegram May ban your bot or your account since Porns aren't allowed in Telegram.
 #   We aren't reponsible for Your causes....Use with caution...
 #   We recommend you to use Alt account.
@@ -43,7 +44,7 @@ async def download_url(url: str):
 )
 async def start(_, message):
     m= await message.reply_text(
-        text = "Hi Iam Tg_PHub_Bot.You can Download Videos upto 1080p !"
+        text = "Hi Iam Tg_PHub_Bot.You can Download Videos from PHub upto 1080p !"
        )
 
 # Help-------------------------------------------------------------------------
@@ -54,8 +55,9 @@ async def help(_, message):
     await message.reply_text(
         """**Below are My Commands...**
 /help To Show This Message.
-/phub To Search and Download in Pornhub.
-/repo To Get the Repo."""
+/repo To Get the Repo.
+
+To Search in PHub just simply Type something"""
     )
     
 # Repo  -----------------------------------------------------------------------
@@ -69,20 +71,23 @@ async def repo(_, message):
        )
 
 # Let's Go----------------------------------------------------------------------
-@app.on_message(filters.command("phub") & ~filters.edited)
+@app.on_message(filters.private & ~filters.edited)
 async def sarch(_,message):
-    if len(message.command) < 2:
+    if message.command[0] != ("help" or "start" or "repo"):
         await message.reply_text(
-            "**Usage:**\n/phub [QUERY]"
+            "**Usage:**\nJust type Something to search in PHub Directly"
         )
         return
     m = await message.reply_text("Getting Results.....")
-    search = message.text.split(None, 1)[1]
+    search = message.text
     try:
         resp = await pornhub(search,thumbsize="large")
         res = resp.result
     except:
-        await m.edit("Found Nothing")
+        await m.edit("Found Nothing... Try again")
+        return
+    if not resp.ok:
+        await m.edit("Found Nothing... Try again")
         return
     resolt = f"""
 **Title:** {res[0].title}
@@ -251,10 +256,18 @@ async def callback_query_dl(_, query):
     capsion = m.caption
     entoty = m.caption_entities
     await m.edit(f"**Downloading and Uploading :\n\n{capsion}")
-    vid = await download_url(res[pos].url)
+    try:
+        vid = await download_url(res[pos].url)
+    except Exception as e:
+        print(e)
+        await m.edit("Oops Download Error... Try again")
+        return
     await m.edit_media(media=InputMediaVideo(vid))
     await m.edit_caption(caption= capsion,caption_entities= entoty)
-    os.remove(vid)
+    try:
+        os.remove(vid)
+    except:
+        pass
     
 # Delete Button-------------------------------------------------------------------------- 
 @app.on_callback_query(filters.regex("delete"))
