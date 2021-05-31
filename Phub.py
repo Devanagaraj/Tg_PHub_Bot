@@ -248,10 +248,10 @@ async def callback_query_dl(_, query):
     curr_page = int(data['curr_page'])
     pos = int(query.data.split()[1])
     pos = pos-1
-    vid = await download_url(res[pos].url)
     capsion = m.caption
     entoty = m.caption_entities
     await m.edit(f"**Downloading and Uploading :\n\n{capsion}")
+    vid = await download_url(res[pos].url)
     await m.edit_media(media=InputMediaVideo(vid))
     await m.edit_caption(caption= capsion,caption_entities= entoty)
     os.remove(vid)
