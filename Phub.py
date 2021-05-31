@@ -37,6 +37,15 @@ async def download_url(url: str):
     file = await loop.run_in_executor(None, download, url)
     return file
 
+# Start  -----------------------------------------------------------------------
+@app.on_message(
+    filters.command("start") & ~filters.edited
+)
+async def start(_, message):
+    m= await message.reply_text(
+        text = "Hi Iam Tg_PHub_Bot.You can Download Videos upto 1080p !"
+       )
+
 # Help-------------------------------------------------------------------------
 @app.on_message(
     filters.command("help") & ~filters.edited
@@ -70,7 +79,7 @@ async def sarch(_,message):
     m = await message.reply_text("Getting Results.....")
     search = message.text.split(None, 1)[1]
     try:
-        resp = await pornhub(search)
+        resp = await pornhub(search,thumbsize="large")
         res = resp.result
     except:
         await m.edit("Found Nothing")
