@@ -38,6 +38,11 @@ async def download_url(url: str):
     file = await loop.run_in_executor(None, download, url)
     return file
 
+async def time_to_seconds(time):
+    stringt = str(time)
+    return sum(
+        int(x) * 60 ** i for i, x in enumerate(reversed(stringt.split(":")))
+    )
 # Start  -----------------------------------------------------------------------
 @app.on_message(
     filters.command("start") & ~filters.edited
@@ -76,7 +81,7 @@ async def repo(_, message):
     )
 async def sarch(_,message):
     try:
-        if message.command != None:
+        if "/" in message.text.split(None,1)[0]:
             await message.reply_text(
                 "**Usage:**\nJust type Something to search in PHub Directly"
             )
@@ -124,10 +129,12 @@ async def sarch(_,message):
  # Next Button--------------------------------------------------------------------------
 @app.on_callback_query(filters.regex("next"))
 async def callback_query_next(_, query):
-    if not db[query.message.chat.id]:
-        return
-    data = db[query.message.chat.id]
     m = query.message
+    try:
+        data = db[query.message.chat.id]
+    except:
+        await m.edit("Something Wrong ..... **Search Again**")
+        return
     res = data['result']
     curr_page = int(data['curr_page'])
     cur_page = curr_page+1
@@ -175,10 +182,12 @@ async def callback_query_next(_, query):
 # Previous Button-------------------------------------------------------------------------- 
 @app.on_callback_query(filters.regex("previous"))
 async def callback_query_next(_, query):
-    if not db[query.message.chat.id]:
-        return
-    data = db[query.message.chat.id]
     m = query.message
+    try:
+        data = db[query.message.chat.id]
+    except:
+        await m.edit("Something Wrong ..... **Search Again**")
+        return
     res = data['result']
     curr_page = int(data['curr_page'])
     cur_page = curr_page-1
@@ -232,6 +241,8 @@ async def callback_query_next(_, query):
     curr_page = int(data['curr_page'])
     dl_links = await phdl(res[curr_page].url)
     db[query.message.chat.id]['result'] = dl_links.result.video
+    db[query.message.chat.id]['thumb'] = res[curr_page].thumbnails[0].src
+    db[query.message.chat.id]['dur'] = res[curr_page].duration
     resolt = f"""
 **Title:** {res[curr_page].title}
 **views:** {res[curr_page].views}
@@ -253,24 +264,29 @@ async def callback_query_next(_, query):
 @app.on_callback_query(filters.regex(r"^phubdl"))
 async def callback_query_dl(_, query):
     m = query.message
+    capsion = m.caption
+    entoty = m.caption_entities
+    await m.edit(f"**Downloading Now :\n\n{capsion}")
     data = db[query.message.chat.id]
     res = data['result']
     curr_page = int(data['curr_page'])
+    thomb = await download_url(data['thumb'])
+    durr = await time_to_seconds(data['dur'])
     pos = int(query.data.split()[1])
     pos = pos-1
-    capsion = m.caption
-    entoty = m.caption_entities
-    await m.edit(f"**Downloading and Uploading :\n\n{capsion}")
     try:
         vid = await download_url(res[pos].url)
     except Exception as e:
         print(e)
         await m.edit("Oops Download Error... Try again")
         return
-    await m.edit_media(media=InputMediaVideo(vid))
+    await m.edit(f"**Uploading Now :\n\n'''{capsion}'''")
+    await app.send_chat_action(m.chat.id, "upload_video")
+    await m.edit_media(media=InputMediaVideo(vid,thumb = thomb, duration = durr, supports_streaming = True))
     await m.edit_caption(caption= capsion,caption_entities= entoty)
     try:
         os.remove(vid)
+        os.remove(thomb)
     except:
         pass
     
