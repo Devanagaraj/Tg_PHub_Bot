@@ -13,17 +13,17 @@ from Python_ARQ import ARQ
 from asyncio import get_running_loop
 from wget import download
 
-# Heroku Check-----------------------------------------------------------------
-is_config = os.path.exists("config.py")
-
-if is_config:
+# Config Check-----------------------------------------------------------------
+if os.path.exists("config.py"):
     from config import *
-else:
+elif os.path.exists("sample_config.py"):
     from sample_config import *
+else:
+    raise Exception("Your Config File Is Invalid or Maybe Doesn't Exist! Please Check Your Config File or Try Again.")
 
 # ARQ API and Bot Initialize---------------------------------------------------
 session = ClientSession()
-arq = ARQ("https://thearq.tech",ARQ_API_KEY,session)
+arq = ARQ("https://thearq.tech", ARQ_API_KEY, session)
 pornhub = arq.pornhub
 phdl = arq.phdl
 
@@ -236,13 +236,13 @@ async def callback_query_next(_, query):
 @app.on_callback_query(filters.regex("dload"))
 async def callback_query_next(_, query):
     m = query.message
-    data = db[query.message.chat.id]
+    data = db[m.chat.id]
     res = data['result']
     curr_page = int(data['curr_page'])
     dl_links = await phdl(res[curr_page].url)
-    db[query.message.chat.id]['result'] = dl_links.result.video
-    db[query.message.chat.id]['thumb'] = res[curr_page].thumbnails[0].src
-    db[query.message.chat.id]['dur'] = res[curr_page].duration
+    db[m.chat.id]['result'] = dl_links.result.video
+    db[m.chat.id]['thumb'] = res[curr_page].thumbnails[0].src
+    db[m.chat.id]['dur'] = res[curr_page].duration
     resolt = f"""
 **Title:** {res[curr_page].title}
 **views:** {res[curr_page].views}
@@ -250,10 +250,10 @@ async def callback_query_next(_, query):
     pos = 1
     cbb = []
     for resolts in dl_links.result.video:
-        b= [InlineKeyboardButton(f"{resolts.quality} - {resolts.size}",callback_data = f"phubdl {pos}")]
+        b= [InlineKeyboardButton(f"{resolts.quality} - {resolts.size}", callback_data=f"phubdl {pos}")]
         pos += 1
         cbb.append(b)
-    cbb.append([InlineKeyboardButton("Delete",callback_data = "delete")])
+    cbb.append([InlineKeyboardButton("Delete", callback_data="delete")])
     await m.edit(
         resolt,
         reply_markup=InlineKeyboardMarkup(cbb),
@@ -267,7 +267,7 @@ async def callback_query_dl(_, query):
     capsion = m.caption
     entoty = m.caption_entities
     await m.edit(f"**Downloading Now :\n\n{capsion}")
-    data = db[query.message.chat.id]
+    data = db[m.chat.id]
     res = data['result']
     curr_page = int(data['curr_page'])
     thomb = await download_url(data['thumb'])
@@ -282,18 +282,16 @@ async def callback_query_dl(_, query):
         return
     await m.edit(f"**Uploading Now :\n\n'''{capsion}'''")
     await app.send_chat_action(m.chat.id, "upload_video")
-    await m.edit_media(media=InputMediaVideo(vid,thumb = thomb, duration = durr, supports_streaming = True))
-    await m.edit_caption(caption= capsion,caption_entities= entoty)
-    try:
+    await m.edit_media(media=InputMediaVideo(vid,thumb=thomb, duration=durr, supports_streaming=True))
+    await m.edit_caption(caption=capsion, caption_entities=entoty)
+    if os.path.isfile(vid):
         os.remove(vid)
+    if os.path.isfile(thomb):
         os.remove(thomb)
-    except:
-        pass
     
 # Delete Button-------------------------------------------------------------------------- 
 @app.on_callback_query(filters.regex("delete"))
 async def callback_query_delete(_, query):
-    m = query.message
-    await m.delete()
+    await query.message.delete()
     
 app.run()
