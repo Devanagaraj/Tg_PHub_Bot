@@ -4,10 +4,14 @@ HEROKU = True  # NOTE Make it false if you're not deploying on heroku.
 if HEROKU:
     from os import environ
 
-    Bot_token = environ["Bot_token"]
-    ARQ_API_KEY = environ["ARQ_API_KEY"]
+    TOKEN = environ["TOKEN"]
+    ARQ_KEY = environ["ARQ_KEY"]
+    API_ID = int(os.environ.get('API_ID'))
+    API_HASH = os.environ.get('API_HASH')
 
 # NOTE Fill this if you are not deploying on heroku.
-if not HEROKU:
-    Bot_token = "Insert Bot_Token Here"
-    ARQ_API_KEY = "Get this from @ARQRobot"
+else:
+    TOKEN = "Insert Bot-token Here | @Botfather"
+    ARQ_KEY = "Get this from @ARQRobot"
+    API_ID = 0
+    API_HASH = "abcd568990jjj"

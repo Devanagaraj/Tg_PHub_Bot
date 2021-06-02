@@ -13,22 +13,20 @@ from Python_ARQ import ARQ
 from asyncio import get_running_loop
 from wget import download
 
-# Heroku Check-----------------------------------------------------------------
-is_config = os.path.exists("config.py")
-
-if is_config:
+# Config Check-----------------------------------------------------------------
+if os.path.exists("config.py"):
     from config import *
-else:
+elif os.path.exists("sample_config.py"):
     from sample_config import *
+else:
+    raise Exception("Your Config File Is Invalid or Maybe Doesn't Exist! Please Check Your Config File or Try Again.")
 
 # ARQ API and Bot Initialize---------------------------------------------------
-session = ClientSession()
-arq = ARQ("https://thearq.tech",ARQ_API_KEY,session)
+arq = ARQ("https://thearq.tech", ARQ_KEY, ClientSession())
 pornhub = arq.pornhub
 phdl = arq.phdl
 
-app = Client("Tg_PHub_Bot", bot_token=Bot_token, api_id=6,
-             api_hash="eb06d4abfb49dc3eeb1aeb98ae0f581e")
+app = Client("Tg_PHub_Bot", bot_token=TOKEN, api_id=API_ID, api_hash=API_HASH)
 print("\nBot Started!...\n")
 
 db = {}
@@ -43,6 +41,7 @@ async def time_to_seconds(time):
     return sum(
         int(x) * 60 ** i for i, x in enumerate(reversed(stringt.split(":")))
     )
+
 # Start  -----------------------------------------------------------------------
 @app.on_message(
     filters.command("start") & ~filters.edited
@@ -284,11 +283,10 @@ async def callback_query_dl(_, query):
     await app.send_chat_action(m.chat.id, "upload_video")
     await m.edit_media(media=InputMediaVideo(vid,thumb = thomb, duration = durr, supports_streaming = True))
     await m.edit_caption(caption= capsion,caption_entities= entoty)
-    try:
+    if os.path.isfile(vid):
         os.remove(vid)
+    if os.path.isfile(thomb):
         os.remove(thomb)
-    except:
-        pass
     
 # Delete Button-------------------------------------------------------------------------- 
 @app.on_callback_query(filters.regex("delete"))
