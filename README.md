@@ -53,3 +53,9 @@ Command | Description
 ## Credits
 
  Python-arq Lib for ARQ API.
+
+## Disclaimer
+
+This is for Demonstration purpose of ARQ API only...
+All Contents are delivered from ARQ API.
+Iam not Responsible for any misuse of IP by the ARQ API.
